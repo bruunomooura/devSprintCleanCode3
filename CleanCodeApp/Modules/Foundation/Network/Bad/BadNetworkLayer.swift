@@ -99,8 +99,11 @@ struct Messaging {
 
 
 
+protocol ConnectivityManagerProxy {
+    var isConnected: Bool { get }
+}
 
-struct ConnectivityManager {
+class ConnectivityManager {
     static let shared = ConnectivityManager()
 
     var isConnected: Bool {
@@ -108,6 +111,8 @@ struct ConnectivityManager {
         return randomInt > 2
     }
 }
+
+extension ConnectivityManager: ConnectivityManagerProxy {}
 
 enum Methods {
     case get

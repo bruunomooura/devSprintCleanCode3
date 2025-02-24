@@ -6,7 +6,7 @@
 //
 import UIKit
 
-protocol CeuResetPasswordViewModelDelegate where Self: UIViewController {
+protocol CeuResetPasswordViewModelDelegate: AnyObject {
     func handleResetPasswordRequestSuccess()
     func handleResetPasswordRequestError()
     func validateForm() throws
@@ -21,10 +21,15 @@ protocol CeuResetPasswordViewModelProtocol {
 
 class CeuResetPasswordViewModel: CeuResetPasswordViewModelProtocol {
     weak var delegate: CeuResetPasswordViewModelDelegate?
-    private let networkManager: NetworkManagerProtocol
+    private let resetPasswordService: CeuResetPasswordServiceProtocol
+    private let connectivityManager: ConnectivityManagerProxy
 
-    init(networkManager: NetworkManagerProtocol = NetworkManager()) {
-        self.networkManager = networkManager
+    init(
+        resetPasswordService: CeuResetPasswordServiceProtocol,
+        connectivityManager: ConnectivityManagerProxy = ConnectivityManager.shared
+    ) {
+        self.resetPasswordService = resetPasswordService
+        self.connectivityManager = connectivityManager
     }
 
     func startRecoverPasswordWith(email: String?) {
@@ -32,55 +37,32 @@ class CeuResetPasswordViewModel: CeuResetPasswordViewModelProtocol {
             try delegate?.validateForm()
             try verifyInternetConnection()
 
-            let parameters = try setupResetPasswordRequestParameters(email: email)
-            makeResetPasswordRequest(parameters: parameters)
+            makeResetPasswordRequest(email: email)
         } catch CeuCommonsErrors.invalidEmail {
-            delegate?.showAlertWith(message: "Verifique o e-mail informado.")
+            delegate?.showAlertWith(message: CeuResetPasswordStrings.verifyEmailErrorMessage.localized())
         } catch {
-            delegate?.showAlertWith(message: "Algo de errado aconteceu. Tente novamente mais tarde.")
+            delegate?.showAlertWith(message: CeuResetPasswordStrings.somethingWentWrongErrorMessage.localized())
         }
     }
 }
 
 private extension CeuResetPasswordViewModel {
-    func setupResetPasswordRequestParameters(email: String?) throws -> [String: String] {
-        guard let email = email else { throw CeuCommonsErrors.invalidData }
-
-        let emailUser = email.trimmingCharacters(in: .whitespaces)
-        let parameters = [
-            "email": emailUser
-        ]
-
-        return parameters
-    }
 
     func verifyInternetConnection() throws {
-        if !ConnectivityManager.shared.isConnected {
+        if !connectivityManager.isConnected {
             delegate?.showNoInternetConnectionAlert()
             throw CeuCommonsErrors.networkError
         }
     }
 
-    func makeResetPasswordRequest(parameters: [String : String]) {
-        let resetPasswordRequest: NetworkRequest = ResetPasswordRequest()
-
-        networkManager.request(resetPasswordRequest) { (result: Result<ResetPasswordResponse, Error>) in
-            switch result {
-            case .success(_):
-                self.delegate?.handleResetPasswordRequestSuccess()
-            case .failure(_):
-                self.delegate?.handleResetPasswordRequestError()
+    func makeResetPasswordRequest(email: String?) {
+        Task { @MainActor in
+            do {
+                _ = try await resetPasswordService.resetPassword(email: email)
+                delegate?.handleResetPasswordRequestSuccess()
+            } catch {
+                delegate?.handleResetPasswordRequestError()
             }
         }
     }
-}
-
-struct ResetPasswordResponse: Decodable {
-    let success: Bool
-    let message: String?
-}
-
-class ResetPasswordRequest: NetworkRequest {
-    var pathURL: String = Endpoints.Auth.resetPassword
-    var method: HTTPMethod = .post
 }

@@ -36,8 +36,8 @@ class CeuResetPasswordCoordinator: CeuResetPasswordCoordinatorProtocol, CeuGloba
     }
 
     func showAlert() {
-        let alertController = UIAlertController(title: "Ops..", message: "Algo de errado aconteceu. Tente novamente mais tarde.", preferredStyle: .alert)
-        let action = UIAlertAction(title: "OK", style: .default)
+        let alertController = UIAlertController(title: CeuResetPasswordStrings.ops.localized(), message: CeuResetPasswordStrings.somethingWentWrongErrorMessage.localized(), preferredStyle: .alert)
+        let action = UIAlertAction(title: CeuResetPasswordStrings.ok.localized(), style: .default)
         alertController.addAction(action)
         Task { @MainActor in
             self.viewController?.present(alertController, animated: true)
@@ -46,7 +46,7 @@ class CeuResetPasswordCoordinator: CeuResetPasswordCoordinatorProtocol, CeuGloba
 
     func showAlertWith(message: String) {
         guard let viewController = viewController else { return }
-        return self.alertMessage(title: "Ops...", message: message, targetVC: viewController, action: nil)
+        return self.alertMessage(title: CeuResetPasswordStrings.ops.localized(), message: message, targetVC: viewController, action: nil)
     }
 
     func showNoInternetConnectionAlert() {

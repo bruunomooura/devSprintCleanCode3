@@ -10,7 +10,10 @@ enum CeuResetPasswordFactory {
     static func make() -> UIViewController {
         let storyboard = UIStoryboard(name: "CeuUser", bundle: nil)
 
-        let ceuResetPasswordViewModel = CeuResetPasswordViewModel()
+        let networkManager = NetworkManager()
+        let resetPasswordService: CeuResetPasswordServiceProtocol = CeuResetPasswordService(networkManager: networkManager)
+        let ceuResetPasswordViewModel = CeuResetPasswordViewModel(resetPasswordService: resetPasswordService)
+
         let ceuResetPasswordCoordinator = CeuResetPasswordCoordinator()
 
         let ceuResetPasswordViewController = storyboard.instantiateViewController(identifier: "CeuResetPasswordViewController") { coder in

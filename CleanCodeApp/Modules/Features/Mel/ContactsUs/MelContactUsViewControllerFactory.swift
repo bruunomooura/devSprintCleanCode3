@@ -20,12 +20,10 @@ enum MelContactUsViewControllerFactory {
             contactUsService: contactUsService
         )
         let melLoadingView: MelLoadingViewProtocol = MelLoadingView()
-        let melAlertDisplay: MelAlertDisplayProtocol = MelAlertDisplay()
         
         return MelContactUsViewController(
             viewModel: viewModel,
-            melLoadingView: melLoadingView,
-            melAlertDisplay: melAlertDisplay
+            melLoadingView: melLoadingView
         )
     }
 }

@@ -19,14 +19,14 @@ class MelLoadingView: MelLoadingViewProtocol {
 
     func showLoadingView(on view: UIView) {
         loadingView = UIView(frame: UIScreen.main.bounds)
-        loadingView.backgroundColor = .systemGray2.withAlphaComponent(0.8) // Adicione transparência
+        loadingView.backgroundColor = .systemGray2.withAlphaComponent(0.8)
         let activityIndicator = UIActivityIndicatorView(style: .large)
         activityIndicator.center = loadingView.center
         activityIndicator.color = .blue
         activityIndicator.startAnimating()
 
         loadingView.addSubview(activityIndicator)
-        view.addSubview(loadingView) // Adiciona à view do controlador atual
+        view.addSubview(loadingView)
         loadingView.alpha = 0.0
         UIView.animate(withDuration: 0.6) {
             self.loadingView.alpha = 1.0

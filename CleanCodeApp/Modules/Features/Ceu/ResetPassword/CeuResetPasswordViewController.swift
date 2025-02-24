@@ -24,7 +24,7 @@ class CeuResetPasswordViewController: UIViewController {
     }
 
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented. Use init(coder:viewModel:coordinator:) instead.")
+        fatalError(CeuResetPasswordStrings.initFatalErrorMessage.localized())
     }
 
 
@@ -46,10 +46,12 @@ private extension CeuResetPasswordViewController {
     }
 
     @IBAction func recoverPasswordButton(_ sender: Any) {
-        if isEmailRecovered {
-            dismiss(animated: true)
-        } else {
-            ceuResetPasswordViewModel.startRecoverPasswordWith(email: emailTextfield?.text)
+        Task { @MainActor in
+            if isEmailRecovered {
+                dismiss(animated: true)
+            } else {
+                await ceuResetPasswordViewModel.startRecoverPasswordWith(email: emailTextfield?.text)
+            }
         }
     }
 
@@ -150,8 +152,7 @@ extension CeuResetPasswordViewController: CeuResetPasswordViewModelDelegate {
         self.verifyEmailLabel.isHidden = true
         self.recoveryPasswordSuccessView.isHidden = false
         self.emailErrorLabel.text = self.emailTextfield.text?.trimmingCharacters(in: .whitespaces)
-        self.recoverPasswordButton.titleLabel?.text = "REENVIAR E-MAIL"
-        self.recoverPasswordButton.setTitle("Voltar", for: .normal)
+        self.recoverPasswordButton.setTitle(CeuResetPasswordStrings.goBack.localized(), for: .normal)
     }
 
     func handleResetPasswordRequestError() {
@@ -159,18 +160,15 @@ extension CeuResetPasswordViewController: CeuResetPasswordViewModelDelegate {
     }
 
     func validateForm() throws {
-        guard let isEmailValid = emailTextfield.text?.isEmailValid() else {
-            throw CeuCommonsErrors.invalidEmail
-        }
-
         self.view.endEditing(true)
 
-        guard isEmailValid else {
+        guard let isEmailValid = emailTextfield.text?.isEmailValid(), isEmailValid else {
             emailTextfield.setErrorColor()
             verifyEmailLabel.textColor = .red
-            verifyEmailLabel.text = "Verifique o e-mail informado"
+            verifyEmailLabel.text = CeuResetPasswordStrings.verifyEmailErrorMessage.localized()
             throw CeuCommonsErrors.invalidEmail
         }
+
     }
 
     func showAlertWith(message: String) {

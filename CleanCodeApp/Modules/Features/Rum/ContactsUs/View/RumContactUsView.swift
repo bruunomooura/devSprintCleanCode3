@@ -10,7 +10,7 @@ import UIKit
 final class RumContactUsView: UIView {
     // MARK: - UI Components
     
-    lazy var headerStackView: UIStackView = {
+    private lazy var headerStackView: UIStackView = {
         let headerStackView = UIStackView()
         headerStackView.axis = .vertical
         headerStackView.spacing = 30
@@ -18,7 +18,7 @@ final class RumContactUsView: UIView {
         return headerStackView
     }()
     
-    lazy var headerButtonsStackView: UIStackView = {
+    private lazy var headerButtonsStackView: UIStackView = {
         let headerButtonsStackView = UIStackView()
         headerButtonsStackView.axis = .horizontal
         headerButtonsStackView.distribution = .equalCentering
@@ -26,20 +26,13 @@ final class RumContactUsView: UIView {
         return headerButtonsStackView
     }()
     
-    lazy var textView: UITextView = {
-        let textView = UITextView()
-        textView.text = "Escreva sua mensagem aqui"
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        return textView
-    }()
-    
-    lazy var titleLabel: UILabel = {
-        let titleLabel = UILabel()
-        titleLabel.textColor = .black
-        titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .semibold)
-        titleLabel.text = "Escolha o canal para contato"
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        return titleLabel
+    private lazy var screenTitle: UILabel = {
+        let screenTitle = UILabel()
+        screenTitle.textColor = .black
+        screenTitle.font = UIFont.systemFont(ofSize: 24, weight: .semibold)
+        screenTitle.text = "Escolha o canal para contato"
+        screenTitle.translatesAutoresizingMaskIntoConstraints = false
+        return screenTitle
     }()
     
     lazy var phoneButton: UIButton = {
@@ -66,7 +59,7 @@ final class RumContactUsView: UIView {
         return chatButton
     }()
     
-    lazy var centerStackView: UIStackView = {
+    private lazy var centerStackView: UIStackView = {
         let centerStackView = UIStackView()
         centerStackView.axis = .vertical
         centerStackView.spacing = 20
@@ -74,18 +67,25 @@ final class RumContactUsView: UIView {
         return centerStackView
     }()
     
-    lazy var messageLabel: UILabel = {
-        let messageLabel = UILabel()
-        messageLabel.textColor = .black
-        messageLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        messageLabel.text = "Ou envie uma mensagem"
-        messageLabel.numberOfLines = 2
-        messageLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        messageLabel.translatesAutoresizingMaskIntoConstraints = false
-        return messageLabel
+    private lazy var textViewTitle: UILabel = {
+        let textViewTitle = UILabel()
+        textViewTitle.textColor = .black
+        textViewTitle.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        textViewTitle.text = "Ou envie uma mensagem"
+        textViewTitle.numberOfLines = 2
+        textViewTitle.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        textViewTitle.translatesAutoresizingMaskIntoConstraints = false
+        return textViewTitle
     }()
     
-    lazy var bottomStackView: UIStackView = {
+    lazy var textView: UITextView = {
+        let textView = UITextView()
+        textView.text = "Escreva sua mensagem aqui"
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        return textView
+    }()
+    
+    private lazy var bottomStackView: UIStackView = {
         let bottomStackView = UIStackView()
         bottomStackView.axis = .vertical
         bottomStackView.spacing = 20
@@ -104,16 +104,16 @@ final class RumContactUsView: UIView {
         return sendMessageButton
     }()
     
-    lazy var closeButton: UIButton = {
-        let closeButton = UIButton()
-        closeButton.setTitle("Voltar", for: .normal)
-        closeButton.setTitleColor(.blue, for: .normal)
-        closeButton.backgroundColor = .clear
-        closeButton.layer.borderWidth = 1
-        closeButton.layer.borderColor = UIColor.blue.cgColor
-        closeButton.layer.cornerRadius = 10
-        closeButton.translatesAutoresizingMaskIntoConstraints = false
-        return closeButton
+    lazy var backButton: UIButton = {
+        let backButton = UIButton()
+        backButton.setTitle("Voltar", for: .normal)
+        backButton.setTitleColor(.blue, for: .normal)
+        backButton.backgroundColor = .clear
+        backButton.layer.borderWidth = 1
+        backButton.layer.borderColor = UIColor.blue.cgColor
+        backButton.layer.cornerRadius = 10
+        backButton.translatesAutoresizingMaskIntoConstraints = false
+        return backButton
     }()
     
     // MARK: - Initializer
@@ -142,10 +142,10 @@ final class RumContactUsView: UIView {
     }
     
     private func setupHierarchy() {
-        headerStackView.addArrangedSubviews(titleLabel, headerButtonsStackView)
+        headerStackView.addArrangedSubviews(screenTitle, headerButtonsStackView)
         headerButtonsStackView.addArrangedSubviews(phoneButton, emailButton, chatButton)
-        centerStackView.addArrangedSubviews(messageLabel, textView)
-        bottomStackView.addArrangedSubviews(sendMessageButton, closeButton)
+        centerStackView.addArrangedSubviews(textViewTitle, textView)
+        bottomStackView.addArrangedSubviews(sendMessageButton, backButton)
         addSubview(headerStackView)
         addSubview(centerStackView)
         addSubview(bottomStackView)
@@ -162,6 +162,10 @@ final class RumContactUsView: UIView {
             headerButtonsStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             headerButtonsStackView.heightAnchor.constraint(equalToConstant: 80),
             
+            phoneButton.heightAnchor.constraint(equalToConstant: 80),
+            emailButton.heightAnchor.constraint(equalToConstant: 80),
+            chatButton.heightAnchor.constraint(equalToConstant: 80),
+            
             phoneButton.widthAnchor.constraint(equalToConstant: 80),
             emailButton.widthAnchor.constraint(equalToConstant: 80),
             chatButton.widthAnchor.constraint(equalToConstant: 80),
@@ -176,7 +180,7 @@ final class RumContactUsView: UIView {
             bottomStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             
             sendMessageButton.heightAnchor.constraint(equalToConstant: 40),
-            closeButton.heightAnchor.constraint(equalToConstant: 40),
+            backButton.heightAnchor.constraint(equalToConstant: 40),
         ])
     }
 }

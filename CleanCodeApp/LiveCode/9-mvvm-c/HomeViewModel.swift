@@ -20,21 +20,24 @@ protocol HomeViewModeling  {
     var currencyOriginTitle: String { get }
     var currencyDestinyPluralTitle: String { get }
     
-    func fetchConversionRate()
-    func getAvailablaCurrencies(filterOrigin: Bool) -> [CurrencyTypeProtocol]
+    func fetchConversionRate() async
+    func getAvailableCurrencies(filterOrigin: Bool) -> [CurrencyTypeProtocol]
     func didUpdateCurrency(isOriginCurrency: Bool, currency: CurrencyTypeProtocol)
 }
 
 extension HomeViewModeling {
-    func getAvailablaCurrencies() -> [CurrencyTypeProtocol] {
-        getAvailablaCurrencies(filterOrigin: false)
+    func getAvailableCurrencies() -> [CurrencyTypeProtocol] {
+        getAvailableCurrencies(filterOrigin: false)
     }
 }
 
 class HomeViewModel: HomeViewModeling {
+    
     private let availableCurrencies: [CurrencyTypeProtocol]
     private var selectedCurrencyFrom: CurrencyTypeProtocol
     private var selectedCurrencyTo: CurrencyTypeProtocol
+    private let currencyService: CurrencyServiceProtocol
+    
     private var conversionRate_: Double = 0.0
     
     var conversionRate: Double {
@@ -52,22 +55,19 @@ class HomeViewModel: HomeViewModeling {
     init(
         selectedCurrencyFrom: CurrencyTypeProtocol,
         selectedCurrencyTo: CurrencyTypeProtocol,
-        availableCurrencies: [CurrencyTypeProtocol]
+        availableCurrencies: [CurrencyTypeProtocol],
+        currencyService: CurrencyServiceProtocol = CurrencyService()
     ) {
         self.selectedCurrencyFrom = selectedCurrencyFrom
         self.selectedCurrencyTo = selectedCurrencyTo
         self.availableCurrencies = availableCurrencies
+        self.currencyService = currencyService
     }
     
     weak var delegate: HomeViewModelDelegate?
     
-    func getAvailablaCurrencies(filterOrigin: Bool) -> [CurrencyTypeProtocol] {
-        if filterOrigin {
-            return availableCurrencies
-        } else {
-            let returnCurrencies = availableCurrencies.filter({ $0.title != selectedCurrencyFrom.title})
-            return returnCurrencies
-        }
+    func getAvailableCurrencies(filterOrigin: Bool) -> [CurrencyTypeProtocol] {
+        return filterOrigin ? availableCurrencies : availableCurrencies.filter { $0.title != selectedCurrencyFrom.title }
     }
     
     func didUpdateCurrency(isOriginCurrency: Bool, currency: CurrencyTypeProtocol) {
@@ -75,47 +75,36 @@ class HomeViewModel: HomeViewModeling {
             self.selectedCurrencyFrom = currency
         } else {
             self.selectedCurrencyTo = currency
-
         }
-        self.fetchConversionRate()
-
+        Task {
+            await fetchConversionRate()
+        }
     }
     
-    func fetchConversionRate() {
-        let originCurrencyIdentifier = selectedCurrencyFrom.identifier
-        let destinyCurrencyIdentifier = selectedCurrencyTo.identifier
+    func fetchConversionRate() async {
+        toggleAlert(show: true)
         
-        let urlString = ApiEndpoints.createFetchConversionRate(from: originCurrencyIdentifier,
-                                                               to: destinyCurrencyIdentifier)
+        do {
+            let rate = try await currencyService.fetchConversionRate(
+                from: selectedCurrencyFrom.identifier,
+                to: selectedCurrencyTo.identifier
+            )
+            conversionRate_ = rate
+            delegate?.updateTextFields()
+        } catch {
+            delegate?.showAlert(text: "Erro ao obter dados")
+        }
         
-        guard let url = URL(string: urlString) else { return }
-        delegate?.presentLoading()
-        
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            DispatchQueue.main.async {
-                guard let self = self,
-                        let data = data else {
-                    self?.delegate?.showAlert(text: "Oops... Algo de errado aconteceu")
-                    return
-                }
-                self.delegate?.hideLoading()
+        toggleAlert(show: false)
+    }
+}
 
-                do {
-                    let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-                    if let dataMap = jsonObject?["data"] as? [String: Any],
-                       let currencyInfo = dataMap[originCurrencyIdentifier] as? [String: Any],
-                       let value = currencyInfo["value"] as? Double {
-                        self.conversionRate_ = value
-                        self.delegate?.updateTextFields()
-
-                    } else {
-                        self.delegate?.showAlert(text: "Erro ao obter dados")
-                    }
-                } catch {
-                    self.delegate?.showAlert(text: "Erro ao obter dados")
-                }
-            }
-        }.resume()
+private extension HomeViewModel {
+    func toggleAlert(show: Bool) {
+        if show {
+            delegate?.presentLoading()
+        } else {
+            delegate?.hideLoading()
+        }
     }
 }

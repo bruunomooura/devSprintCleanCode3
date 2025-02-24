@@ -11,14 +11,13 @@ class MelContactUsViewController: UIViewController {
     private var viewModel: MelContactUsViewModelProtocol
     private var contactUsView: MelContactUsView?
     private let melLoadingView: MelLoadingViewProtocol
-    private let melAlertDisplay: MelAlertDisplayProtocol
     
-    init(viewModel: MelContactUsViewModelProtocol,
-         melLoadingView: MelLoadingViewProtocol,
-         melAlertDisplay: MelAlertDisplayProtocol) {
+    init(
+        viewModel: MelContactUsViewModelProtocol,
+        melLoadingView: MelLoadingViewProtocol
+    ) {
         self.viewModel = viewModel
         self.melLoadingView = melLoadingView
-        self.melAlertDisplay = melAlertDisplay
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -77,13 +76,15 @@ extension MelContactUsViewController: MelContactUsViewModelDelegate {
     }
     
     func presentErrorAlert(mustDismiss: Bool) {
-        melAlertDisplay.displayErrorAlert(on: self, mustDismiss: mustDismiss)
+        self.displayErrorAlert(mustDismiss: mustDismiss)
     }
     
     func presentSuccessAlert() {
-        melAlertDisplay.displayErrorAlert(on: self, mustDismiss: true)
+        self.displaySuccessAlert()
     }
 }
+
+extension MelContactUsViewController: MelAlertDisplayProtocol { }
 
 enum ChatError: Error {
     case invalidPhoneNumber

@@ -42,7 +42,6 @@ class HomeViewController3: UIViewController, UITextFieldDelegate {
     ) {
         self.viewModel = viewModel
         self.coordinator = coordinator
-
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -55,7 +54,6 @@ class HomeViewController3: UIViewController, UITextFieldDelegate {
         view.backgroundColor = .white
         setupActions()
         updateLabels()
-        viewModel.fetchConversionRate()
         homeView.currencySelectedLabel.text = viewModel.currencyOriginTitle
         
         title = "Conversor de Moeda"
@@ -66,6 +64,9 @@ class HomeViewController3: UIViewController, UITextFieldDelegate {
                                                             action: #selector(logoutTapped))
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didClickView))
         view.addGestureRecognizer(tapGesture)
+        Task.init {
+            await viewModel.fetchConversionRate()
+        }
     }
     
     @objc
@@ -85,7 +86,7 @@ class HomeViewController3: UIViewController, UITextFieldDelegate {
 
     
     @objc private func selectCurrencyFromTapped() {
-        let availableCurrencies = viewModel.getAvailablaCurrencies()
+        let availableCurrencies = viewModel.getAvailableCurrencies()
         coordinator.showAlert(availableCurrencies: availableCurrencies,
                               title: "Selecione a moeda") { currency in
             self.viewModel.didUpdateCurrency(isOriginCurrency: true,
@@ -95,7 +96,7 @@ class HomeViewController3: UIViewController, UITextFieldDelegate {
     }
     
     @objc private func selectCurrencyToTapped() {
-        let availableCurrencies = viewModel.getAvailablaCurrencies(filterOrigin: true)
+        let availableCurrencies = viewModel.getAvailableCurrencies(filterOrigin: true)
         coordinator.showAlert(availableCurrencies: availableCurrencies,
                               title: "Selecione a moeda de destino") { currency in
             self.viewModel.didUpdateCurrency(isOriginCurrency: false,
